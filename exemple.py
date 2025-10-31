@@ -1,4 +1,4 @@
-from aiogram import Bot, Dispatcher
+from aiogram import Bot, Dispatcher, F
 from aiogram.filters import Command, CommandStart
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from aiogram.types import (
@@ -14,7 +14,7 @@ dp = Dispatcher()
 
 
 choices = ["Камень", "Ножницы", "Бумага"]
-yes_or_no = ["Давай!", "Не хочу!"]
+yes_or_no = ['Давай!', 'Не хочу!']
 
 users = {}
 
@@ -25,12 +25,10 @@ kb_builder2 = ReplyKeyboardBuilder()
 buttons2 = [KeyboardButton(text=f"{i}") for i in choices]
 kb_builder2.row(*buttons2)
 
-
-
 @dp.message(CommandStart())
 async def start_command(message: Message):
     await message.answer(text="Приветствую в игре \"Камень, Ножницы, Бумага\"",
-                         reply_markup=kb_builder.as_markup()
+                         reply_markup=kb_builder.as_markup(resize_keyboard=True)
                          )
     if not message.from_user.id in users:
         users[message.from_user.id] = {
@@ -39,6 +37,22 @@ async def start_command(message: Message):
             'wins': 0
         }
 
+@dp.message(F.text == (yes_or_no[0]))
+async def start_command(message: Message):
+    await message.answer(text=f"Твой ход:",
+                         reply_markup=kb_builder2.as_markup(resize_keyboard=True))
+
+    if not users[message.from_user.id]['in_game']:
+        users[message.from_user.id]['in_game'] = True
+        users[message.from_user.id]['total_games'] += 1
+
+@dp.message(Command(commands=yes_or_no[1]))
+async def start_command(message: Message):
+    await message.answer(text=f"Возвращайся когдап будешь готов",
+                         reply_markup=kb_builder2.as_markup(resize_keyboard=True))
+
+    if users[message.from_user.id]['in_game']:
+        users[message.from_user.id]['in_game'] = False
 
 
 if __name__ == '__main__':
